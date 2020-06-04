@@ -14,12 +14,17 @@ Platform:
   win32 x64
 
 Trace: 
-  SyntaxError: C:\Users\Oles\PhpstormProjects\electron-win\package.json: Unexpected token ] in JSON at position 375
-      at JSON.parse (<anonymous>)
-      at C:\Program Files (x86)\Yarn\lib\cli.js:1130:59
-      at Generator.next (<anonymous>)
-      at step (C:\Program Files (x86)\Yarn\lib\cli.js:98:30)
-      at C:\Program Files (x86)\Yarn\lib\cli.js:109:13
+  Error: https://registry.yarnpkg.com/node-ffi-napi: Not found
+      at Request.params.callback [as _callback] (C:\Program Files (x86)\Yarn\lib\cli.js:65656:18)
+      at Request.self.callback (C:\Program Files (x86)\Yarn\lib\cli.js:134675:22)
+      at Request.emit (events.js:310:20)
+      at Request.<anonymous> (C:\Program Files (x86)\Yarn\lib\cli.js:135658:10)
+      at Request.emit (events.js:310:20)
+      at IncomingMessage.<anonymous> (C:\Program Files (x86)\Yarn\lib\cli.js:135578:12)
+      at Object.onceWrapper (events.js:416:28)
+      at IncomingMessage.emit (events.js:322:22)
+      at endReadableNT (_stream_readable.js:1187:12)
+      at processTicksAndRejections (internal/process/task_queues.js:84:21)
 
 npm manifest: 
   {
@@ -39,7 +44,7 @@ npm manifest:
       "files": [
         "node_modules/**/*",
         ".env",
-        "./main.js",
+        "./main.js"
       ]
     },
     "keywords": [],

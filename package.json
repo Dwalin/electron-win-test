@@ -15,10 +15,13 @@
     "files": [
       "node_modules/**/*",
       ".env",
-      "./main.js",
+      "./main.js"
     ]
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "ffi-napi": "^3.0.1"
+  }
 }

@@ -25,7 +25,7 @@ app.disableHardwareAcceleration();
 let stripWindow;
 let stripNode;
 const hudWindows = [];
-const dev = !!isDev;
+const dev = !!isDev;1
 // const dev = false;
 
 console.log = (message) => {
