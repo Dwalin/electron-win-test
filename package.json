@@ -2,7 +2,7 @@
   "name": "electron-win",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,6 +22,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "electron": "^9.0.2",
     "ffi-napi": "^3.0.1"
   }
 }

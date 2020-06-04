@@ -45,15 +45,15 @@ const launchStrip = () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
   setTimeout(() => {
-    if (process.platform === 'win32') {
-      app.setAsDefaultProtocolClient('jivaro', process.execPath, [
-        path.resolve(process.argv[1] || ''),
-      ]);
-
-      // app.setAsDefaultProtocolClient('jivaro');
-    } else {
-      app.setAsDefaultProtocolClient('jivaro');
-    }
+    // if (process.platform === 'win32') {
+    //   app.setAsDefaultProtocolClient('jivaro', process.execPath, [
+    //     path.resolve(process.argv[1] || ''),
+    //   ]);
+    //
+    //   // app.setAsDefaultProtocolClient('jivaro');
+    // } else {
+    //   app.setAsDefaultProtocolClient('jivaro');
+    // }
 
     launchStrip();
   }, 400);
