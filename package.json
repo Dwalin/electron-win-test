@@ -23,6 +23,8 @@
   "license": "ISC",
   "dependencies": {
     "electron": "^9.0.2",
-    "ffi-napi": "^3.0.1"
+    "ffi-napi": "^3.0.1",
+    "global": "^4.4.0",
+    "node-gyp": "^7.0.0"
   }
 }

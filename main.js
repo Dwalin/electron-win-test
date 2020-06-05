@@ -16,6 +16,16 @@ app.disableHardwareAcceleration();
 let stripWindow;
 let stripNode;
 
+var FFILA = require('ffi-napi');
+var REF = require('ref-napi');
+
+var user32IsWindow = new FFILA.Library('user32', {
+  'IsWindow' : [
+    'BOOL', [ 'int32' ]
+  ]
+});
+
+
 const launchStrip = () => {
   // Create the browser window.
 
@@ -33,7 +43,20 @@ const launchStrip = () => {
 
   stripWindow.loadURL('https://app.jivaro.com');
   stripNode = stripWindow && stripWindow.webContents;
+
+  console.log("I LIKE TURTLES");
+
+  const res = user32IsWindow.IsWindow(2232174);
+  console.log(res);
+
+  // const res = REF.alloc(32);
+  // var dres = res.deref();
+  //
+  // if (dres == 0) console.log("NOT A WINDOW");
+  // if (dres == 1) console.log("IS A WINDOW");
   // Emitted when the window is closed.
+
+
   stripWindow.on('closed', () => {
     stripNode = null;
     stripWindow = null;
