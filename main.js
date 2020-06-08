@@ -20,21 +20,37 @@ let stripWindow;
 let stripNode;
 
 const { U } = require('win32-api');
+const { DTypes } = require('win32-def');
+const { DModel } = require('win32-def');
 const ffi = require('ffi-napi');
 const ref = require('ref-napi');
 
+const user32Additional = ffi.Library("user32", {
+  GetWindowTextLengthW: ["int", ["pointer"]],
+});
+
 let pfnWinEventProc = null;
-pfnWinEventProc = ffi.Callback("void", ["pointer", "int", "pointer", "long", "long", "int", "int"], () => {
-  console.log('HELLO');
+pfnWinEventProc = ffi.Callback("void", ["pointer", DTypes.HWND, "pointer", "long", "long", "int", "int"],
+  (hWinEventHook, event, hwnd, idObject, idChild, idEventThread, dwmsEventTime) => {
+    console.log('------');
+    console.log('hWinEventHook');console.log(hWinEventHook);
+    console.log('event');console.log(event);
+    console.log('hwnd');console.log(hwnd);
+    console.log('idObject');console.log(idObject);
+    console.log('idChild');console.log(idChild);
+    console.log('idEventThread');console.log(idEventThread);
+    console.log('dwmsEventTime');console.log(dwmsEventTime);
+    console.log('------');
 });
 
 const user32 = U.load();
 
-setInterval(() => {
+setTimeout(() => {
   const appWindow = user32.GetForegroundWindow();
+  console.log('appWindow');
   console.log(appWindow);
 
-  user32.SetWindowTextW(appWindow, Buffer.from('OKOK' + '\0', 'ucs2'));
+  // user32.SetWindowTextW(appWindow, Buffer.from('OKOK' + '\0', 'ucs2'));
 
   const msgType = ref.types.void;
   const msgPtr = ref.refType(msgType);
@@ -43,13 +59,13 @@ setInterval(() => {
   const WINEVENT_SKPIOWNPROCESS = 2;
 
   user32.SetWinEventHook(
-    1,
-    3,
-    appWindow,
+    10,
+    11,
+    0x0000,
     pfnWinEventProc,
+    process.pid,
     0,
-    0,
-    0 | 2
+    0
   );
 
   // user32.SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, null, pfnWinEventProc,
