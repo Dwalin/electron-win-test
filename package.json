@@ -22,9 +22,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cluster": "^0.7.7",
     "electron": "^9.0.2",
+    "electron-rebuild": "^1.11.0",
     "ffi-napi": "^3.0.1",
     "global": "^4.4.0",
-    "node-gyp": "^7.0.0"
+    "iconv": "^3.0.0",
+    "node-gyp": "^7.0.0",
+    "rebuild": "^0.1.2",
+    "ref-wchar-napi": "^1.0.2",
+    "win32-api": "^9.4.0"
   }
 }
