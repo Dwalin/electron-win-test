@@ -28,6 +28,8 @@
     "ffi-napi": "^3.0.1",
     "global": "^4.4.0",
     "iconv": "^3.0.0",
+    "loadash": "^1.0.0",
+    "lodash": "^4.17.15",
     "node-gyp": "^7.0.0",
     "rebuild": "^0.1.2",
     "ref-wchar-napi": "^1.0.2",
