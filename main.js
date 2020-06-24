@@ -5,13 +5,9 @@ const {
   ipcMain,
 } = require('electron');
 const  _ = require('lodash');
-// const console = require('console');
-// app.console = new console.Console(process.stdout, process.stderr);
-// process.stdout.write('your output to command prompt console or node js ');
 
 console.log = (message) => {
   if (stripNode) {
-    // stripNode.executeJavaScript(`console.log("console.log from electron")`);
     stripNode.executeJavaScript(`console.log(${JSON.stringify(message)})`);
   }
 };
@@ -25,6 +21,7 @@ const { DTypes } = require('win32-def');
 const { DModel } = require('win32-def');
 const ffi = require('ffi-napi');
 const ref = require('ref-napi');
+const windows = [];
 
 const user32Additional = ffi.Library("user32", {
   GetWindowTextLengthW: ["int", ["pointer"]],
@@ -39,26 +36,12 @@ const user32Additional = ffi.Library("user32", {
 
 let pfnWinEventProc = null;
 let enumWindowsFunction = null;
-// let enumChildWindowsFunction = null;
 
-// enumChildWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
-//   var buf, name, ret;
-//   buf = new Buffer(255);
-//   user32Additional.GetWindowTextA(hwnd, buf, 255);
-//   name = ref.readCString(buf, 0);
-//
-//   if (!!name && (name != 'Default IME') && (name != 'MSCTFIME UI')) {
-//
-//   }
-//
-//   return true;
-// });
 
 enumThreadWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
-  var buf, name, ret;
-  buf = new Buffer(255);
+  const buf = new Buffer(255);
   user32Additional.GetWindowTextA(hwnd, buf, 255);
-  name = ref.readCString(buf, 0);
+  const name = ref.readCString(buf, 0);
 
   if (!!name && (name !== 'Default IME') && (name !== 'MSCTFIME UI')) {
     if (name.includes('PokerStars')) { return true }
@@ -81,12 +64,10 @@ enumThreadWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwn
   return true;
 });
 
-
 enumWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
-  var buf, name, ret;
-  buf = new Buffer(255);
-  ret = user32Additional.GetWindowTextA(hwnd, buf, 255);
-  name = ref.readCString(buf, 0);
+  const buf = new Buffer(255);
+  user32Additional.GetWindowTextA(hwnd, buf, 255);
+  const name = ref.readCString(buf, 0);
   if (name.includes(`PokerStars`)) {
     const processBuffer = new Buffer(255);
     processBuffer.type = ref.types.int;
@@ -94,7 +75,6 @@ enumWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lPa
     const processID = ref.deref(processBuffer);
     console.log(`ProcessID: ${processID}, thread ${threadID}`);
     console.log(`Parent Window name: ${name}`);
-    // user32Additional.EnumChildWindows(hwnd, enumChildWindowsFunction, 0);
     user32Additional.EnumThreadWindows(threadID, enumThreadWindowsFunction, 0);
   }
   return true;
@@ -103,7 +83,7 @@ enumWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lPa
 const hudWindows = [];
 
 createHudWindow = (pointer, name, initialPosition) => {
-  newWindow = new BrowserWindow({
+  const newWindow = new BrowserWindow({
     width: initialPosition.width,
     height: initialPosition.height,
     x: initialPosition.x,
@@ -112,34 +92,32 @@ createHudWindow = (pointer, name, initialPosition) => {
       nodeIntegration: true,
     },
   });
-}
+
+  windows.push({
+    jivaroWindowHandle: newWindow.getNativeWindowHandle().readInt32LE(),
+    pokerStarsWindowHandle: pointer,
+  })
+};
 
 const user32 = U.load();
 
 setTimeout(function () {
   const appWindow = user32.GetForegroundWindow();
-  console.log('appWindow');
-  console.log(appWindow);
-
   user32.EnumWindows(enumWindowsFunction, 0);
-
-  const msgType = ref.types.void;
-  const msgPtr = ref.refType(msgType);
-  const EVENT_SYSTEM_FOREGROUND = 3;
-  const WINEVENT_OUTOFCONTEXT = 0;
-  const WINEVENT_SKPIOWNPROCESS = 2;
 
   let move = false;
   let foreGroundWindow = user32.GetForegroundWindow();
 
   const moveFunction = _.throttle(() => {
-    console.log(foreGroundWindow);
-    if (move) {
+    const windowPair = windows.find(window => foreGroundWindow === window.pokerStarsWindowHandle);
+    console.log(windowPair);
+
+    if (move && windowPair) {
       const strct = Buffer.alloc(4 * 4);
       user32.GetWindowRect(foreGroundWindow, strct);
       user32Additional.SetWindowPos(
-        appWindow,
-        -2,
+        windowPair.jivaroWindowHandle,
+        -1,
         strct.readUInt32LE(0),
         strct.readUInt32LE(4) + 40,
         strct.readUInt32LE(8) - strct.readUInt32LE(0),
@@ -149,16 +127,26 @@ setTimeout(function () {
 
       user32Additional.SetWindowPos(
         foreGroundWindow,
-        appWindow,
+        windowPair.jivaroWindowHandle,
         strct.readUInt32LE(0),
         strct.readUInt32LE(4),
         strct.readUInt32LE(8) - strct.readUInt32LE(0),
         strct.readUInt32LE(12) - strct.readUInt32LE(4),
         0x0002
       );
+
+      user32Additional.SetWindowPos(
+        windowPair.jivaroWindowHandle,
+        -2,
+        strct.readUInt32LE(0),
+        strct.readUInt32LE(4) + 40,
+        strct.readUInt32LE(8) - strct.readUInt32LE(0),
+        strct.readUInt32LE(12) - strct.readUInt32LE(4) - 40,
+        0x0010
+      );
     }
     moveFunction();
-  }, 100);
+  }, 10);
 
   moveFunction();
 
