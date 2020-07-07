@@ -1,21 +1,24 @@
 {
-  "name": "electron-win",
+  "name": "positioner",
   "version": "1.0.0",
-  "description": "",
+  "description": "testing stuff",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "electron-pack": "set DEBUG=electron-builder && electron-builder -c.extraMetadata.main='./main.js'"
   },
   "build": {
     "appId": "electron-win",
     "win": {
       "target": "portable",
-      "icon": "resources/icon.png"
+      "icon": "resources/icon.png",
+      "requestedExecutionLevel": "requireAdministrator",
+      "signAndEditExecutable": false
     },
     "files": [
       "node_modules/**/*",
       ".env",
-      "./main.js"
+      "./positioner.js"
     ]
   },
   "keywords": [],
@@ -23,8 +26,6 @@
   "license": "ISC",
   "dependencies": {
     "cluster": "^0.7.7",
-    "electron": "^9.0.2",
-    "electron-rebuild": "^1.11.0",
     "ffi-napi": "^3.0.1",
     "global": "^4.4.0",
     "iconv": "^3.0.0",
@@ -34,5 +35,10 @@
     "rebuild": "^0.1.2",
     "ref-wchar-napi": "^1.0.2",
     "win32-api": "^9.4.0"
+  },
+  "devDependencies": {
+    "electron": "^9.0.2",
+    "electron-rebuild": "^1.11.0",
+    "electron-builder": "^21.2.0"
   }
 }
