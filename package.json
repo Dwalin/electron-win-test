@@ -18,7 +18,7 @@
     "files": [
       "node_modules/**/*",
       ".env",
-      "./positioner.js"
+      "./main.js"
     ]
   },
   "keywords": [],

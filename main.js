@@ -27,8 +27,8 @@ const user32Additional = ffi.Library("user32", {
   GetWindowTextLengthW: ["int", ["pointer"]],
   SetWinEventHook: ["int", ["int", "int", "pointer", "pointer", "int", "int", "int"]],
   SetWindowPos: ["int", ["int", "int", "int", "int", "int", "int", "int"]],
-  GetWindowTextA : ['long', ['long', ref.refType(ref.types.CString), 'long']],
-  SetWindowTextA : ['long', ['long', ref.refType(ref.types.CString)]],
+  GetWindowTextA : ['long', ['long', 'long', 'long']],
+  SetWindowTextA : ['long', ['long', 'long']],
   EnumChildWindows : ['bool', ['long', ref.refType(ref.types.void), 'int32']],
   EnumThreadWindows  : ['bool', ['long', ref.refType(ref.types.void), 'int32']],
   GetWindowThreadProcessId : ['long', ['long', ref.refType(ref.types.CString)]],
@@ -36,7 +36,6 @@ const user32Additional = ffi.Library("user32", {
 
 let pfnWinEventProc = null;
 let enumWindowsFunction = null;
-
 
 enumThreadWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
   const buf = new Buffer(255);
