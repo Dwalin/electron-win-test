@@ -50,6 +50,7 @@ enumThreadWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwn
     if (name.includes('PokerStars')) { return true }
     else {
       console.log(`Window name: ${name}`);
+      console.log(`Window name: ${hwnd}`);
 
       const windowStructure = Buffer.alloc(4 * 4);
       user32.GetWindowRect(hwnd, windowStructure);
@@ -72,6 +73,8 @@ enumWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lPa
   user32Additional.GetWindowTextA(hwnd, buf, 255);
   const name = ref.readCString(buf, 0);
   if (name.includes(`PokerStars`)) {
+    console.log(`Window name: ${name}`);
+    console.log(`Window name: ${hwnd}`);
     const processBuffer = new Buffer(255);
     processBuffer.type = ref.types.int;
     const threadID = user32Additional.GetWindowThreadProcessId(hwnd, processBuffer);
