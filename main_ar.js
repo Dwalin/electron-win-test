@@ -51,7 +51,7 @@ const launchStrip = async () => {
 
   await windowslaver.initialize();
   if (windowslaver.windowPairs.length > 0) {
-    windowslaver.windowPairs.forEach((window, index) => {
+    windowslaver.windowPairs.forEach(async (window, index) => {
       const newWindow = new BrowserWindow({
         width: 200,
         height: 200,
@@ -68,6 +68,15 @@ const launchStrip = async () => {
       const newWindowHandle = newWindow.getNativeWindowHandle();
       windowslaver.windowPairs[index].jivaroWindow = newWindow;
       windowslaver.windowPairs[index].jivaroWindowHandle = newWindowHandle;
+
+      let num = index;
+      let instance = windowslaver.windowPairs[num];
+      instance.move = true;
+      console.log("start");
+      setTimeout(() => {
+        console.log("stop");
+        instance.move = false;
+      }, 200);
 
       console.log(windowslaver.windowPairs);
 

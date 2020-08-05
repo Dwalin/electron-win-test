@@ -64,8 +64,18 @@ class Windowslaver {
           if (self.windowPairs.length > 0) {
             const windowToMove = self.windowPairs.find(item => item.applicationHandle === hwnd);
             console.log(windowToMove);
+            let timeout = null;
 
             switch (event) {
+                case 5:
+                    windowToMove.move = true;
+                    break;
+                case 8:
+                    windowToMove.move = true;
+                    break;
+                case 9:
+                    windowToMove.move = false;
+                    break;
                 case 10:
                     windowToMove.move = true;
                     break;
@@ -82,7 +92,7 @@ class Windowslaver {
                     windowToMove.move = false;
                     break;
                 default:
-                    windowToMove.move = false;
+                    console.log(event);
             }
           }
         }
@@ -93,35 +103,49 @@ class Windowslaver {
   #windowReceivedEventInstance = null;
 
     #watcher = _.throttle(() => {
-        console.log("watching");
+        // console.log("watching");
         const windowToMove = this.windowPairs.find(windowInstance => !!windowInstance.move);
         if (!!windowToMove) {
-            const windowRectangle = Buffer.alloc(4 * 4);
-            user32.GetWindowRect(windowToMove.applicationHandle, windowRectangle);
-            const jivaroWindowRectangle = {
-                left: windowRectangle.readUInt32LE(0),
-                top: windowRectangle.readUInt32LE(4),
-                right: windowRectangle.readUInt32LE(8),
-                bottom: windowRectangle.readUInt32LE(12),
-            };
+            this.windowPairs.forEach((pair) => {
+                if (!!pair.move) {
+                    const windowRectangle = Buffer.alloc(4 * 4);
+                    user32.GetWindowRect(pair.applicationHandle, windowRectangle);
+                    const jivaroWindowRectangle = {
+                        left: windowRectangle.readUInt32LE(0),
+                        top: windowRectangle.readUInt32LE(4),
+                        right: windowRectangle.readUInt32LE(8),
+                        bottom: windowRectangle.readUInt32LE(12),
+                    };
 
-            try {
-                user32.SetWindowPos(
-                  windowToMove.jivaroWindowHandle.readInt32LE(),
-                  -1,
-                  jivaroWindowRectangle.left,
-                  jivaroWindowRectangle.top + 40,
-                  jivaroWindowRectangle.right - jivaroWindowRectangle.left,
-                  jivaroWindowRectangle.bottom - jivaroWindowRectangle.top - 40,
-                  (0x0040)
-                );
-            } catch (e) {
-                console.log("Positioning error");
-            }
+                    try {
+                        user32.SetWindowPos(
+                          pair.jivaroWindowHandle.readInt32LE(),
+                          -1,
+                          jivaroWindowRectangle.left,
+                          jivaroWindowRectangle.top + 40,
+                          jivaroWindowRectangle.right - jivaroWindowRectangle.left,
+                          jivaroWindowRectangle.bottom - jivaroWindowRectangle.top - 40,
+                          (0x0040)
+                        );
+                    } catch (e) {
+                        console.log("Positioning error");
+                    }
+                } else {
+                    user32.SetWindowPos(
+                      windowToMove.jivaroWindowHandle.readInt32LE(),
+                      -2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      (0x0001 | 0x0002)
+                    );
+                }
+            });
         }
 
         this.#watcher();
-    }, 10);
+    }, 25);
 
   constructor() {
     console.log('initializing windowslaver');
@@ -147,7 +171,8 @@ class Windowslaver {
       this.processes.forEach(async (process, index) => {
         await this.addCallback
         try {
-          user32.SetWinEventHook(10, 11, null, this.#windowReceivedEventInstance, process, 0, 0 | 2)
+          user32.SetWinEventHook(0x0000, 0x00FF, null, this.#windowReceivedEventInstance, process, 0, 0 | 2);
+          // user32.SetWinEventHook(0x8013, 0x8013, null, this.#windowReceivedEventInstance, process, 0, 0 | 2);
         } catch (e) {
           console.log("WinHook error");
         }
