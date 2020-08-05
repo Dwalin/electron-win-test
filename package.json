@@ -2,7 +2,7 @@
   "name": "positioner",
   "version": "1.0.0",
   "description": "testing stuff",
-  "main": "main_ar.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "electron-pack": "set DEBUG=electron-builder && electron-builder -c.extraMetadata.main='./main.js'"
