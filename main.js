@@ -140,7 +140,7 @@ setTimeout(function () {
 
   moveFunction();
 
-  pfnWinEventProc = ffi.Callback("void", ["pointer", "int", "pointer", "long", "long", "int", "int"],
+  pfnWinEventProc = ffi.Callback("void", ["pointer", "int", "int", "long", "long", "int", "int"],
   function (hWinEventHook, event, hwnd, idObject, idChild, idEventThread, dwmsEventTime) {
     console.log('------');
     console.log(event);

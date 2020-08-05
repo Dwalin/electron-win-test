@@ -45,7 +45,6 @@ enumThreadWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwn
   const buf = new Buffer(255);
   user32Additional.GetWindowTextA(hwnd, buf, 255);
   const name = ref.readCString(buf, 0);
-
   if (!!name && (name !== 'Default IME') && (name !== 'MSCTFIME UI')) {
     if (name.includes('PokerStars')) { return true }
     else {
@@ -72,7 +71,9 @@ enumWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lPa
   const buf = new Buffer(255);
   user32Additional.GetWindowTextA(hwnd, buf, 255);
   const name = ref.readCString(buf, 0);
-  if (name.includes(`PokerStars`)) {
+  console.log(hwnd);
+  console.log(name);
+  if (name.includes(`Calculator`)) {
     console.log(`Window name: ${name}`);
     console.log(`Window name: ${hwnd}`);
     const processBuffer = new Buffer(255);
@@ -81,7 +82,7 @@ enumWindowsFunction = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lPa
     const processID = ref.deref(processBuffer);
     console.log(`ProcessID: ${processID}, thread ${threadID}`);
     console.log(`Parent Window name: ${name}`);
-    user32Additional.EnumThreadWindows(threadID, enumThreadWindowsFunction, 0);
+    // user32Additional.EnumThreadWindows(threadID, enumThreadWindowsFunction, 0);
   }
   return true;
 });
