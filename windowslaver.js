@@ -4,8 +4,7 @@
 // const { DModel } = require('win32-def');
 const ffi = require('ffi-napi');
 const ref = require('ref-napi');
-const  _ = require('lodash');
-const windows = [];
+const _ = require('lodash');
 
 const user32 = ffi.Library("user32", {
   GetWindowTextLengthW: ["int", ["pointer"]],
@@ -21,9 +20,6 @@ const user32 = ffi.Library("user32", {
   GetWindowRect: ['bool', ['int', 'pointer']],
 });
 
-const slaveHandles = [];
-let windowProc = null;
-
 class Windowslaver {
 
   #enumWindowsFunction = (application, lookUpChildrenByThread) => {
@@ -33,22 +29,51 @@ class Windowslaver {
       user32.GetWindowTextA(hwnd, buf, 256);
       const name = ref.readCString(buf, 0);
       if (name.includes(application)) {
-        console.log(hwnd);
+        console.log("Found window");
+        console.log(`Window name: ${name}`);
+        console.log(`Window name: ${hwnd}`);
         const processBuffer = new Buffer(255);
         processBuffer.type = ref.types.int;
         const threadID = user32.GetWindowThreadProcessId(hwnd, processBuffer);
         const processID = ref.deref(processBuffer);
-        self.addThread(threadID);
-        self.addProcess(processID);
         if (lookUpChildrenByThread) {
-          user32.EnumThreadWindows(threadID, this.enumThreadWindowsFunction, 0);
+          user32.EnumThreadWindows(threadID, self.#enumThreadWindowsFunction(), 0);
         } else {
+          self.addThread(threadID);
+          self.addProcess(processID);
           self.addWindow(hwnd, name);
         }
       }
       return true;
     });
   };
+
+  #enumThreadWindowsFunction = () => {
+    let self = this;
+    return ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
+      const buf = new Buffer(255);
+      user32.GetWindowTextA(hwnd, buf, 255);
+      const name = ref.readCString(buf, 0);
+      if (!!name && (name !== 'Default IME') && (name !== 'MSCTFIME UI')) {
+        if (name.includes('PokerStars')) { return true }
+        else {
+          console.log(`Window name: ${name}`);
+          console.log(`Window name: ${hwnd}`);
+          const processBuffer = new Buffer(255);
+          processBuffer.type = ref.types.int;
+          const threadID = user32.GetWindowThreadProcessId(hwnd, processBuffer);
+          const processID = ref.deref(processBuffer);
+          self.addThread(threadID);
+          self.addProcess(processID);
+          self.addWindow(hwnd, name);
+        }
+      }
+
+      return true;
+    });
+  };
+
+
 
   #windowReceivedEvent = () => {
     let self = this;
@@ -67,32 +92,35 @@ class Windowslaver {
             let timeout = null;
 
             switch (event) {
-                case 5:
-                    windowToMove.move = true;
-                    break;
-                case 8:
-                    windowToMove.move = true;
-                    break;
-                case 9:
-                    windowToMove.move = false;
-                    break;
-                case 10:
-                    windowToMove.move = true;
-                    break;
-                case 11:
-                    user32.SetWindowPos(
-                      windowToMove.jivaroWindowHandle.readInt32LE(),
-                      -2,
-                      0,
-                      0,
-                      0,
-                      0,
-                      (0x0001 | 0x0002)
-                    );
-                    windowToMove.move = false;
-                    break;
-                default:
-                    console.log(event);
+              // case 3:
+              //   windowToMove.move = true;
+              //   break;
+              // case 5:
+              //   windowToMove.move = true;
+              //   break;
+              case 8:
+                windowToMove.move = true;
+                break;
+              case 9:
+                windowToMove.move = false;
+                break;
+              case 10:
+                windowToMove.move = true;
+                break;
+              case 11:
+                user32.SetWindowPos(
+                  windowToMove.jivaroWindowHandle.readInt32LE(),
+                  -2,
+                  0,
+                  0,
+                  0,
+                  0,
+                  (0x0001 | 0x0002)
+                );
+                windowToMove.move = false;
+                break;
+              default:
+                console.log(event);
             }
           }
         }
@@ -102,50 +130,50 @@ class Windowslaver {
 
   #windowReceivedEventInstance = null;
 
-    #watcher = _.throttle(() => {
-        // console.log("watching");
-        const windowToMove = this.windowPairs.find(windowInstance => !!windowInstance.move);
-        if (!!windowToMove) {
-            this.windowPairs.forEach((pair) => {
-                if (!!pair.move) {
-                    const windowRectangle = Buffer.alloc(4 * 4);
-                    user32.GetWindowRect(pair.applicationHandle, windowRectangle);
-                    const jivaroWindowRectangle = {
-                        left: windowRectangle.readUInt32LE(0),
-                        top: windowRectangle.readUInt32LE(4),
-                        right: windowRectangle.readUInt32LE(8),
-                        bottom: windowRectangle.readUInt32LE(12),
-                    };
+  #watcher = _.throttle(() => {
+    // console.log("watching");
+    const windowToMove = this.windowPairs.find(windowInstance => !!windowInstance.move);
+    if (!!windowToMove) {
+      this.windowPairs.forEach((pair) => {
+        if (!!pair.move) {
+          const windowRectangle = Buffer.alloc(4 * 4);
+          user32.GetWindowRect(pair.applicationHandle, windowRectangle);
+          const jivaroWindowRectangle = {
+            left: windowRectangle.readUInt32LE(0),
+            top: windowRectangle.readUInt32LE(4),
+            right: windowRectangle.readUInt32LE(8),
+            bottom: windowRectangle.readUInt32LE(12),
+          };
 
-                    try {
-                        user32.SetWindowPos(
-                          pair.jivaroWindowHandle.readInt32LE(),
-                          -1,
-                          jivaroWindowRectangle.left,
-                          jivaroWindowRectangle.top + 40,
-                          jivaroWindowRectangle.right - jivaroWindowRectangle.left,
-                          jivaroWindowRectangle.bottom - jivaroWindowRectangle.top - 40,
-                          (0x0040)
-                        );
-                    } catch (e) {
-                        console.log("Positioning error");
-                    }
-                } else {
-                    user32.SetWindowPos(
-                      windowToMove.jivaroWindowHandle.readInt32LE(),
-                      -2,
-                      0,
-                      0,
-                      0,
-                      0,
-                      (0x0001 | 0x0002)
-                    );
-                }
-            });
+          try {
+            user32.SetWindowPos(
+              pair.jivaroWindowHandle.readInt32LE(),
+              -1,
+              jivaroWindowRectangle.left,
+              jivaroWindowRectangle.top + 40,
+              jivaroWindowRectangle.right - jivaroWindowRectangle.left,
+              jivaroWindowRectangle.bottom - jivaroWindowRectangle.top - 40,
+              (0x0040)
+            );
+          } catch (e) {
+            console.log("Positioning error");
+          }
+        } else {
+          // user32.SetWindowPos(
+          //   windowToMove.jivaroWindowHandle.readInt32LE(),
+          //   -2,
+          //   0,
+          //   0,
+          //   0,
+          //   0,
+          //   (0x0001 | 0x0002)
+          // );
         }
+      });
+    }
 
-        this.#watcher();
-    }, 25);
+    this.#watcher();
+  }, 25);
 
   constructor() {
     console.log('initializing windowslaver');
@@ -153,14 +181,14 @@ class Windowslaver {
     this.threads = [];
     this.processes = [];
     this.callbacks = [];
-    this.application = "Calculator";
+    this.application = "PokerStars";
   }
 
   async initialize() {
     console.log("Enumerating windows");
 
     try {
-      await user32.EnumWindows(this.#enumWindowsFunction(this.application, false), 0)
+      await user32.EnumWindows(this.#enumWindowsFunction(this.application, true), 0)
     } catch (e) {
       console.log("Enum error");
     }
@@ -172,7 +200,6 @@ class Windowslaver {
         await this.addCallback
         try {
           user32.SetWinEventHook(0x0000, 0x00FF, null, this.#windowReceivedEventInstance, process, 0, 0 | 2);
-          // user32.SetWinEventHook(0x8013, 0x8013, null, this.#windowReceivedEventInstance, process, 0, 0 | 2);
         } catch (e) {
           console.log("WinHook error");
         }
@@ -181,8 +208,6 @@ class Windowslaver {
 
     this.#watcher();
   }
-
-
 
   addWindow(hwnd, name) {
     this.windowPairs.push({
@@ -198,10 +223,6 @@ class Windowslaver {
   addProcess(id) {
     this.processes.push(id);
   };
-
-  // addCallback() {
-  //     this.callback = '';
-  // };
 
   enumThreadWindowsFunction(application, lookUpchildrenByThread) {
     return ffi.Callback('bool', ['long', 'int32'], function (hwnd, lParam) {
@@ -226,20 +247,7 @@ class Windowslaver {
       return true;
     });
   }
-
-
-  removeHandle(handle) {
-    console.log('removeHandle');
-    if (slaveHandles.some(e => e.handle === handle)) {
-      console.log('Removing handle ' + handle);
-      slaveHandles.splice(slaveHandles.findIndex(e => e.handle === handle), 1);
-      // unhook
-    } else {
-      console.log('Removal issued for untracked handle ' + handle);
-      // ?
-    }
-  }
-
 }
+
 
 module.exports = Windowslaver;

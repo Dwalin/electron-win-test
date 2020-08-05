@@ -72,11 +72,11 @@ const launchStrip = async () => {
       let num = index;
       let instance = windowslaver.windowPairs[num];
       instance.move = true;
-      console.log("start");
-      setTimeout(() => {
-        console.log("stop");
-        instance.move = false;
-      }, 200);
+      // console.log("start");
+      // setTimeout(() => {
+      //   console.log("stop");
+      //   instance.move = false;
+      // }, 200);
 
       console.log(windowslaver.windowPairs);
 
