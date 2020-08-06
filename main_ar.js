@@ -15,8 +15,13 @@ app.disableHardwareAcceleration();
 let stripWindow;
 let stripNode;
 
+const pokerThreadId = 56968;
+
 let yellowWindow;
-const yellowPSWindow = 393876;
+const yellowPSWindow = 462828;
+
+let blueWindow;
+const bluePSWindow = 397282;
 
 let windowslaver = new Windowslaver();
 
@@ -27,10 +32,6 @@ console.log = (message) => {
 };
 
 
-const func = () => {
-  //windowslaver.iterated();
-  console.log('I Like Zeebras');
-};
 
 const launchStrip = async () => {
   // Create the browser window.
@@ -49,7 +50,40 @@ const launchStrip = async () => {
   stripWindow.loadURL('https://app.jivaro.com');
   stripNode = stripWindow && stripWindow.webContents;
 
-  await windowslaver.initialize();
+  yellowWindow = new BrowserWindow({
+    width: 50,
+    height: 50,
+    frame: false,
+    useContentSize: true,
+    backgroundColor: "#F7c136",
+    transparent: true,
+    focusable: false,
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
+  yellowbuff = yellowWindow.getNativeWindowHandle();
+
+  blueWindow = new BrowserWindow({
+    width: 50,
+    height: 50,
+    frame: false,
+    useContentSize: true,
+    backgroundColor: "#00FFFF",
+    transparent: true,
+    focusable: false,
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
+  bluebuff = blueWindow.getNativeWindowHandle();
+
+  await windowslaver.initialize(pokerThreadId);
+
+  windowslaver.addWindow(yellowPSWindow, yellowbuff.readUInt32LE());
+  windowslaver.addWindow(bluePSWindow, bluebuff.readUInt32LE())
+
+  /*
   if (windowslaver.windowPairs.length > 0) {
     windowslaver.windowPairs.forEach(async (window, index) => {
       const newWindow = new BrowserWindow({
@@ -82,7 +116,7 @@ const launchStrip = async () => {
 
     });
   }
-
+*/
   // Emitted when the window is closed.
   stripWindow.on('closed', () => {
     stripNode = null;

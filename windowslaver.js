@@ -37,6 +37,7 @@ class Windowslaver {
         const threadID = user32.GetWindowThreadProcessId(hwnd, processBuffer);
         const processID = ref.deref(processBuffer);
         if (lookUpChildrenByThread) {
+          console.log(`Thread name: ${hwnd}`);
           user32.EnumThreadWindows(threadID, self.#enumThreadWindowsFunction(), 0);
         } else {
           self.addThread(threadID);
@@ -73,8 +74,6 @@ class Windowslaver {
     });
   };
 
-
-
   #windowReceivedEvent = () => {
     let self = this;
     return (
@@ -102,6 +101,15 @@ class Windowslaver {
                 windowToMove.move = true;
                 break;
               case 9:
+                user32.SetWindowPos(
+                  windowToMove.jivaroWindowHandle.readInt32LE(),
+                  -2,
+                  0,
+                  0,
+                  0,
+                  0,
+                  (0x0001 | 0x0002)
+                );
                 windowToMove.move = false;
                 break;
               case 10:
@@ -119,7 +127,19 @@ class Windowslaver {
                 );
                 windowToMove.move = false;
                 break;
+              // case 0x800B:
+              //   windowToMove.move = true;
               default:
+                windowToMove.move = false;
+                user32.SetWindowPos(
+                  windowToMove.jivaroWindowHandle.readInt32LE(),
+                  -2,
+                  0,
+                  0,
+                  0,
+                  0,
+                  (0x0001 | 0x0002)
+                );
                 console.log(event);
             }
           }
@@ -181,14 +201,14 @@ class Windowslaver {
     this.threads = [];
     this.processes = [];
     this.callbacks = [];
-    this.application = "PokerStars";
+    this.application = "Calculator";
   }
 
   async initialize() {
     console.log("Enumerating windows");
 
     try {
-      await user32.EnumWindows(this.#enumWindowsFunction(this.application, true), 0)
+      await user32.EnumWindows(this.#enumWindowsFunction(this.application, false), 0)
     } catch (e) {
       console.log("Enum error");
     }
@@ -215,6 +235,11 @@ class Windowslaver {
       applicationName: name,
     });
   };
+
+  addJivaroWindow(newWindow, newWindowHandle, handle) {
+    this.windowPairs.find(item => item.applicationHandle === handle)
+
+  }
 
   addThread(id) {
     this.threads.push(id);

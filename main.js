@@ -50,6 +50,7 @@ const launchStrip = async () => {
   stripNode = stripWindow && stripWindow.webContents;
 
   await windowslaver.initialize();
+
   if (windowslaver.windowPairs.length > 0) {
     windowslaver.windowPairs.forEach(async (window, index) => {
       const newWindow = new BrowserWindow({
