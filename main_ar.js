@@ -5,7 +5,7 @@ const {
   ipcMain,
 } = require('electron');
 
-const Windowslaver = require('./windowslaver.js');
+const Windowslaver = require('./windowslaver_ar.js');
 
 app.disableHardwareAcceleration();
 
@@ -15,13 +15,13 @@ app.disableHardwareAcceleration();
 let stripWindow;
 let stripNode;
 
-const pokerThreadId = 56968;
+const pokerThreadId = 20268;
 
 let yellowWindow;
-const yellowPSWindow = 462828;
+const yellowPSWindow = 533924;
 
 let blueWindow;
-const bluePSWindow = 397282;
+const bluePSWindow = 1975004;
 
 let windowslaver = new Windowslaver();
 

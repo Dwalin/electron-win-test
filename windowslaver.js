@@ -37,7 +37,8 @@ class Windowslaver {
         const threadID = user32.GetWindowThreadProcessId(hwnd, processBuffer);
         const processID = ref.deref(processBuffer);
         if (lookUpChildrenByThread) {
-          console.log(`Thread name: ${hwnd}`);
+          console.log(`Thread name: ${threadID}`);
+          console.log(`Process name: ${processID}`);
           user32.EnumThreadWindows(threadID, self.#enumThreadWindowsFunction(), 0);
         } else {
           self.addThread(threadID);
@@ -87,60 +88,135 @@ class Windowslaver {
 
           if (self.windowPairs.length > 0) {
             const windowToMove = self.windowPairs.find(item => item.applicationHandle === hwnd);
-            console.log(windowToMove);
+            // console.log(windowToMove);
             let timeout = null;
 
-            switch (event) {
-              // case 3:
-              //   windowToMove.move = true;
-              //   break;
-              // case 5:
-              //   windowToMove.move = true;
-              //   break;
-              case 8:
-                windowToMove.move = true;
-                break;
-              case 9:
-                user32.SetWindowPos(
-                  windowToMove.jivaroWindowHandle.readInt32LE(),
-                  -2,
-                  0,
-                  0,
-                  0,
-                  0,
-                  (0x0001 | 0x0002)
-                );
-                windowToMove.move = false;
-                break;
-              case 10:
-                windowToMove.move = true;
-                break;
-              case 11:
-                user32.SetWindowPos(
-                  windowToMove.jivaroWindowHandle.readInt32LE(),
-                  -2,
-                  0,
-                  0,
-                  0,
-                  0,
-                  (0x0001 | 0x0002)
-                );
-                windowToMove.move = false;
-                break;
-              // case 0x800B:
-              //   windowToMove.move = true;
-              default:
-                windowToMove.move = false;
-                user32.SetWindowPos(
-                  windowToMove.jivaroWindowHandle.readInt32LE(),
-                  -2,
-                  0,
-                  0,
-                  0,
-                  0,
-                  (0x0001 | 0x0002)
-                );
-                console.log(event);
+            if (!!windowToMove) {
+              switch (event) {
+                case 22: // 0x0016 EVENT_SYSTEM_MINIMIZESTART
+                  setTimeout(() => {
+                    windowToMove.jivaroWindow.hide();
+                  }, 100);
+                  break;
+                case 8:
+                  windowToMove.move = true;
+                  self.#watcher();
+                  break;
+                case 9:
+                  user32.SetWindowPos(
+                    windowToMove.jivaroWindowHandle.readInt32LE(),
+                    -1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    (0x0001 | 0x0002)
+                  );
+                  setTimeout(() => {
+                    windowToMove.jivaroWindow.show();
+                    user32.SetWindowPos(
+                      windowToMove.jivaroWindowHandle.readInt32LE(),
+                      -2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      (0x0001 | 0x0002)
+                    );
+                  }, 100);
+                  windowToMove.move = false;
+                  break;
+                case 10:
+                  windowToMove.move = true;
+                  self.#watcher();
+                  break;
+                case 11:
+                  user32.SetWindowPos(
+                    windowToMove.jivaroWindowHandle.readInt32LE(),
+                    -1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    (0x0001 | 0x0002)
+                  );
+                  setTimeout(() => {
+                    windowToMove.jivaroWindow.show();
+                    user32.SetWindowPos(
+                      windowToMove.jivaroWindowHandle.readInt32LE(),
+                      -2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      (0x0001 | 0x0002)
+                    );
+                  }, 100);
+                  windowToMove.move = false;
+                  break;
+                case 3: // 0x0003 EVENT_SYSTEM_FOREGROUND
+                  windowToMove.jivaroWindow.show();
+                  user32.SetWindowPos(
+                    windowToMove.jivaroWindowHandle.readInt32LE(),
+                    -1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    (0x0001 | 0x0002)
+                  );
+                  setTimeout(() => {
+                    windowToMove.jivaroWindow.show();
+                    user32.SetWindowPos(
+                      windowToMove.jivaroWindowHandle.readInt32LE(),
+                      -2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      (0x0001 | 0x0002)
+                    );
+                  }, 100);
+                  windowToMove.move = false;
+                  break;
+                case 23: // 0x0017 EVENT_SYSTEM_MINIMIZEEND
+                  windowToMove.jivaroWindow.show();
+                  user32.SetWindowPos(
+                    windowToMove.jivaroWindowHandle.readInt32LE(),
+                    -1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    (0x0001 | 0x0002)
+                  );
+                  setTimeout(() => {
+                    windowToMove.jivaroWindow.show();
+                    user32.SetWindowPos(
+                      windowToMove.jivaroWindowHandle.readInt32LE(),
+                      -2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      (0x0001 | 0x0002)
+                    );
+                  }, 100);
+                  windowToMove.move = false;
+                  break;
+                default:
+                  // windowToMove.move = false;
+                  // user32.SetWindowPos(
+                  //   windowToMove.jivaroWindowHandle.readInt32LE(),
+                  //   -2,
+                  //   0,
+                  //   0,
+                  //   0,
+                  //   0,
+                  //   (0x0001 | 0x0002)
+                  // );
+                  // console.log(event);
+              }
             }
           }
         }
@@ -154,45 +230,31 @@ class Windowslaver {
     // console.log("watching");
     const windowToMove = this.windowPairs.find(windowInstance => !!windowInstance.move);
     if (!!windowToMove) {
-      this.windowPairs.forEach((pair) => {
-        if (!!pair.move) {
-          const windowRectangle = Buffer.alloc(4 * 4);
-          user32.GetWindowRect(pair.applicationHandle, windowRectangle);
-          const jivaroWindowRectangle = {
-            left: windowRectangle.readUInt32LE(0),
-            top: windowRectangle.readUInt32LE(4),
-            right: windowRectangle.readUInt32LE(8),
-            bottom: windowRectangle.readUInt32LE(12),
-          };
+      const windowRectangle = Buffer.alloc(4 * 4);
+      user32.GetWindowRect(windowToMove.applicationHandle, windowRectangle);
+      const jivaroWindowRectangle = {
+        left: windowRectangle.readUInt32LE(0),
+        top: windowRectangle.readUInt32LE(4),
+        right: windowRectangle.readUInt32LE(8),
+        bottom: windowRectangle.readUInt32LE(12),
+      };
 
-          try {
-            user32.SetWindowPos(
-              pair.jivaroWindowHandle.readInt32LE(),
-              -1,
-              jivaroWindowRectangle.left,
-              jivaroWindowRectangle.top + 40,
-              jivaroWindowRectangle.right - jivaroWindowRectangle.left,
-              jivaroWindowRectangle.bottom - jivaroWindowRectangle.top - 40,
-              (0x0040)
-            );
-          } catch (e) {
-            console.log("Positioning error");
-          }
-        } else {
-          // user32.SetWindowPos(
-          //   windowToMove.jivaroWindowHandle.readInt32LE(),
-          //   -2,
-          //   0,
-          //   0,
-          //   0,
-          //   0,
-          //   (0x0001 | 0x0002)
-          // );
-        }
-      });
+      try {
+        user32.SetWindowPos(
+          windowToMove.jivaroWindowHandle.readInt32LE(),
+          -1,
+          jivaroWindowRectangle.left,
+          jivaroWindowRectangle.top + 40,
+          jivaroWindowRectangle.right - jivaroWindowRectangle.left,
+          jivaroWindowRectangle.bottom - jivaroWindowRectangle.top - 40,
+          (0x0040)
+        );
+      } catch (e) {
+        console.log("Positioning error");
+      }
+
+      this.#watcher();
     }
-
-    this.#watcher();
   }, 25);
 
   constructor() {
@@ -201,14 +263,14 @@ class Windowslaver {
     this.threads = [];
     this.processes = [];
     this.callbacks = [];
-    this.application = "Calculator";
+    this.application = "PokerStars";
   }
 
   async initialize() {
     console.log("Enumerating windows");
 
     try {
-      await user32.EnumWindows(this.#enumWindowsFunction(this.application, false), 0)
+      await user32.EnumWindows(this.#enumWindowsFunction(this.application, true), 0)
     } catch (e) {
       console.log("Enum error");
     }
@@ -248,30 +310,6 @@ class Windowslaver {
   addProcess(id) {
     this.processes.push(id);
   };
-
-  enumThreadWindowsFunction(application, lookUpchildrenByThread) {
-    return ffi.Callback('bool', ['long', 'int32'], function (hwnd, lParam) {
-      const buf = new Buffer(255);
-      user32.GetWindowTextA(hwnd, buf, 255);
-      const name = ref.readCString(buf, 0);
-      if (!!name && (name !== 'Default IME') && (name !== 'MSCTFIME UI')) {
-        if (name.includes('PokerStars')) {
-          return true
-        } else {
-          const windowStructure = Buffer.alloc(4 * 4);
-          user32.GetWindowRect(hwnd, windowStructure);
-          const initialPosition = {
-            x: windowStructure.readUInt32LE(0),
-            y: windowStructure.readUInt32LE(4) + 40,
-            width: windowStructure.readUInt32LE(8) - windowStructure.readUInt32LE(0),
-            length: windowStructure.readUInt32LE(12) - windowStructure.readUInt32LE(4) - 40,
-          };
-          setWindow(hwnd, name, initialPosition);
-        }
-      }
-      return true;
-    });
-  }
 }
 
 
