@@ -58,7 +58,7 @@ const launchStrip = async () => {
         height: 200,
         frame: false,
         useContentSize: true,
-        backgroundColor: "#" + Math.floor(Math.random()*16777215).toString(16),
+        // backgroundColor: "#" + Math.floor(Math.random()*16777215).toString(16),
         transparent: true,
         focusable: false,
         webPreferences: {
@@ -66,21 +66,13 @@ const launchStrip = async () => {
         },
       });
 
-      const newWindowHandle = newWindow.getNativeWindowHandle();
-      windowslaver.windowPairs[index].jivaroWindow = newWindow;
-      windowslaver.windowPairs[index].jivaroWindowHandle = newWindowHandle;
+      const newWindowHandle = await newWindow.getNativeWindowHandle().readInt32LE();
+      await newWindow.loadURL("https://app.jivaro.com/extension");
 
-      let num = index;
-      let instance = windowslaver.windowPairs[num];
-      // instance.move = true;
-      // console.log("start");
-      // setTimeout(() => {
-      //   console.log("stop");
-      //   instance.move = false;
-      // }, 200);
-
-      console.log(windowslaver.windowPairs);
-
+      // console.log(newWindow, newWindowHandle, window.applicationHandle);
+      setTimeout(() => {
+        windowslaver.addJivaroWindow(newWindow, newWindowHandle, window.applicationHandle);
+      }, 100);
     });
   }
 
