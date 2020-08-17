@@ -95,10 +95,10 @@ class Windowslaver {
     let strct = Buffer.alloc(4 * 4);
     user32.GetWindowRect(windowToMove.applicationHandle, strct);
     const rect = {};
-    rect.left = strct.readUInt32LE(0);
-    rect.top = strct.readUInt32LE(4);
-    rect.right = strct.readUInt32LE(8);
-    rect.bottom = strct.readUInt32LE(12);
+    rect.left = strct.readInt32LE(0);
+    rect.top = strct.readInt32LE(4);
+    rect.right = strct.readInt32LE(8);
+    rect.bottom = strct.readInt32LE(12);
 
     // if ((rect.left > 2000000) || (rect.left < -2000000))
     try {
@@ -111,6 +111,7 @@ class Windowslaver {
         -2, 0, 0, 0, 0, (0x0001 | 0x0002)
       );
     } catch (e) {
+      console.log("Positioning error in placeOverlay");
       windowToMove.jivaroWindow.hide();
     }
 
@@ -137,7 +138,11 @@ class Windowslaver {
                 self.#watcher();
                 break;
               case 9: // EVENT_SYSTEM_CAPTUREEND
-                self.#placeOverlayOnApplication(windowToMove);
+                setTimeout(() => {
+                  if (!windowToMove.move) {
+                    self.#placeOverlayOnApplication(windowToMove);
+                  }
+                }, 100);
                 break;
               case 10: // EVENT_SYSTEM_MOVESIZESTART
                 windowToMove.move = true;
@@ -151,7 +156,7 @@ class Windowslaver {
                 break;
               case 23: // 0x0017 EVENT_SYSTEM_MINIMIZEEND
                 windowToMove.jivaroWindow.show();
-                // self.#placeOverlayOnApplication(windowToMove);
+                self.#placeOverlayOnApplication(windowToMove);
                 break;
               default:
               console.log(event);
@@ -171,10 +176,10 @@ class Windowslaver {
       const windowRectangle = Buffer.alloc(4 * 4);
       user32.GetWindowRect(windowToMove.applicationHandle, windowRectangle);
       const jivaroWindowRectangle = {
-        left: windowRectangle.readUInt32LE(0),
-        top: windowRectangle.readUInt32LE(4),
-        right: windowRectangle.readUInt32LE(8),
-        bottom: windowRectangle.readUInt32LE(12),
+        left: windowRectangle.readInt32LE(0),
+        top: windowRectangle.readInt32LE(4),
+        right: windowRectangle.readInt32LE(8),
+        bottom: windowRectangle.readInt32LE(12),
       };
 
       try {
@@ -205,11 +210,11 @@ class Windowslaver {
           windowToMove.applicationHandle === prevHandle ? -2 : prevHandle,
           0, 0, 0, 0, 0x0002 | 0x0001 | 0x4000 | 0x0010);
       } catch (e) {
-        console.log("Positioning error");
+        console.log("Positioning error in keeper");
       }
     });
     this.#keeper();
-  }, 25);
+  }, 100);
 
   constructor() {
     console.log('initializing windowslaver');
