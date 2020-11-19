@@ -246,7 +246,6 @@ class Windowslaver {
       })
     }
 
-    // this.#watcher();
     this.#keeper();
   }
 
@@ -256,6 +255,8 @@ class Windowslaver {
       applicationHandle: hwnd,
       applicationName: name,
     });
+
+    let parentage = user32.SetWindowLongPtrA(hwnd, -8, handle);
   };
 
   addJivaroWindow(newWindow, newWindowHandle, handle) {
@@ -267,6 +268,8 @@ class Windowslaver {
     // Set parentage
     // user32.SetWindowLongPtrA(window.jivaroWindowHandle, -8, window.applicationHandle);
     // user32.PostMessageA(window.applicationHandle, 0x112, 0xF120, 0x0);
+
+    // user32.SetWindowLongPtrA(overlay, -8, handle);
 
     let strct = Buffer.alloc(4 * 4);
     user32.GetWindowRect(window.applicationHandle, strct);
